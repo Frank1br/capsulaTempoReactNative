@@ -16,7 +16,8 @@ export type IconName =
   | 'box'
   | 'chart'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'trash';
 
 type Props = {
   name: IconName;
@@ -116,5 +117,7 @@ function renderShapes(name: IconName, s: object) {
       );
     case 'moon':
       return <Path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.5 6.5 0 0 0 10 10z" {...s} />;
+    case 'trash':
+      return <Path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2l1-12M9 7V4.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V7" {...s} />;
   }
 }

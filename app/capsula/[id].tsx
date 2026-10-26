@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/components/Icon';
@@ -69,6 +69,7 @@ function Trancada({ capsule, now }: { capsule: Capsule; now: number }) {
       </ScrollView>
 
       <BackButton />
+      <DeleteButton capsule={capsule} locked />
     </View>
   );
 }
@@ -130,6 +131,7 @@ function Aberta({ capsule }: { capsule: Capsule }) {
       </ScrollView>
 
       <BackButton />
+      <DeleteButton capsule={capsule} locked={false} />
     </View>
   );
 }
@@ -149,6 +151,11 @@ function Fact({ icon, label, value }: { icon: IconName; label: string; value: st
   );
 }
 
+function goBack() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/');
+}
+
 function BackButton() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
@@ -156,10 +163,50 @@ function BackButton() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Voltar"
-      onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-      style={[styles.back, { top: insets.top + 5, backgroundColor: t.card, boxShadow: t.shadowStrong }]}
+      onPress={goBack}
+      style={[styles.topButton, styles.back, { top: insets.top + 5, backgroundColor: t.card, boxShadow: t.shadowStrong }]}
     >
       <Icon name="back" color={t.ink} size={22} />
+    </Pressable>
+  );
+}
+
+function DeleteButton({ capsule, locked }: { capsule: Capsule; locked: boolean }) {
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
+  const { removeCapsule } = useCapsules();
+
+  const title = 'Apagar cápsula?';
+  const message = locked
+    ? `"${capsule.title}" ainda está trancada. A mensagem será apagada sem ter sido lida.`
+    : `"${capsule.title}" e a foto serão apagadas deste aparelho.`;
+
+  function remove() {
+    // Leave the screen first, so it never renders the "not found" state.
+    goBack();
+    removeCapsule(capsule.id);
+  }
+
+  function confirm() {
+    // Alert with buttons does nothing on the web.
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${title}\n\n${message}`)) remove();
+      return;
+    }
+    Alert.alert(title, message, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Apagar', style: 'destructive', onPress: remove },
+    ]);
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Apagar cápsula"
+      onPress={confirm}
+      style={[styles.topButton, styles.delete, { top: insets.top + 5, backgroundColor: t.card, boxShadow: t.shadowStrong }]}
+    >
+      <Icon name="trash" color={t.err} size={20} strokeWidth={2} />
     </Pressable>
   );
 }
@@ -331,13 +378,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 13.5,
   },
-  back: {
+  topButton: {
     position: 'absolute',
-    left: 16,
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  back: {
+    left: 16,
+  },
+  delete: {
+    right: 16,
   },
 });
