@@ -50,6 +50,7 @@ function RootStack() {
       <StatusBar style={t.dark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="nova" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );

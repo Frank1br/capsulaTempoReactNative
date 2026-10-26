@@ -5,7 +5,8 @@ export type Capsule = {
   id: string;
   title: string;
   message: string;
-  photoUri: string;
+  /** Photo path as returned by savePhoto; resolve it with photoUri. */
+  photo: string;
   /** Index into MOODS, or null when no mood was picked. */
   mood: number | null;
   createdAt: string;

@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { countdown, formatShort, isLocked, MOODS, type Capsule } from '@/lib/capsules';
+import { photoUri } from '@/lib/photos';
 import { fonts, useTheme } from '@/lib/theme';
 import { Icon } from './Icon';
 import { LockBadge } from './LockBadge';
@@ -26,7 +27,7 @@ export function CapsuleCard({ capsule, now, onPress }: Props) {
       style={({ pressed }) => [styles.card, { backgroundColor: t.card, boxShadow: t.shadow, opacity: pressed ? 0.9 : 1 }]}
     >
       <View style={[styles.thumb, { backgroundColor: t.sunk }]}>
-        <Image source={{ uri: capsule.photoUri }} blurRadius={locked ? 5 : 0} contentFit="cover" style={StyleSheet.absoluteFill} />
+        <Image source={{ uri: photoUri(capsule.photo) }} blurRadius={locked ? 5 : 0} contentFit="cover" style={StyleSheet.absoluteFill} />
         {locked && (
           <View style={[StyleSheet.absoluteFill, styles.scrim, { backgroundColor: t.scrim }]}>
             <View style={[styles.lockDot, { backgroundColor: t.badge }]}>
