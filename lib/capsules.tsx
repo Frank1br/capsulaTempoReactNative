@@ -32,6 +32,8 @@ type CapsulesContextValue = {
   capsules: Capsule[];
   loaded: boolean;
   addCapsule: (input: Omit<Capsule, 'id' | 'createdAt'>) => Promise<Capsule>;
+  /** Saves the changed fields; a replaced photo's old file is deleted. */
+  updateCapsule: (id: string, changes: Partial<Omit<Capsule, 'id' | 'createdAt'>>) => Promise<void>;
   /** Removes the capsule and its photo file. */
   removeCapsule: (id: string) => Promise<void>;
 };
@@ -67,6 +69,16 @@ export function CapsulesProvider({ children }: { children: ReactNode }) {
     return capsule;
   }, []);
 
+  const updateCapsule = useCallback(async (id: string, changes: Partial<Omit<Capsule, 'id' | 'createdAt'>>) => {
+    const current = capsulesRef.current.find((c) => c.id === id);
+    if (!current) return;
+    const next = capsulesRef.current.map((c) => (c.id === id ? { ...c, ...changes } : c));
+    capsulesRef.current = next;
+    setCapsules(next);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    if (changes.photo && changes.photo !== current.photo) deletePhoto(current.photo);
+  }, []);
+
   const removeCapsule = useCallback(async (id: string) => {
     const removed = capsulesRef.current.find((c) => c.id === id);
     if (!removed) return;
@@ -77,7 +89,10 @@ export function CapsulesProvider({ children }: { children: ReactNode }) {
     deletePhoto(removed.photo);
   }, []);
 
-  const value = useMemo(() => ({ capsules, loaded, addCapsule, removeCapsule }), [capsules, loaded, addCapsule, removeCapsule]);
+  const value = useMemo(
+    () => ({ capsules, loaded, addCapsule, updateCapsule, removeCapsule }),
+    [capsules, loaded, addCapsule, updateCapsule, removeCapsule],
+  );
   return <CapsulesContext.Provider value={value}>{children}</CapsulesContext.Provider>;
 }
 
