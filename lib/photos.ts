@@ -18,6 +18,17 @@ export async function savePhoto(pickedUri: string): Promise<string> {
   return `${FOLDER}/${name}`;
 }
 
+/** Deletes the file savePhoto created. A missing file is not an error. */
+export function deletePhoto(stored: string) {
+  if (stored.includes(':')) return;
+  try {
+    const file = new File(Paths.document, stored);
+    if (file.exists) file.delete();
+  } catch {
+    // Keeping an orphan photo is better than failing the removal.
+  }
+}
+
 /** Turns what savePhoto stored back into a uri the Image component can load. */
 export function photoUri(stored: string): string {
   if (stored.includes(':')) return stored;

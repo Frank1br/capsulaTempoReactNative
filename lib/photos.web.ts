@@ -18,6 +18,9 @@ export async function savePhoto(pickedUri: string): Promise<string> {
   return canvas.toDataURL('image/jpeg', 0.8);
 }
 
+// The data URL lives inside the capsule itself, so there is no file to delete.
+export function deletePhoto(_stored: string) {}
+
 export function photoUri(stored: string): string {
   return stored;
 }

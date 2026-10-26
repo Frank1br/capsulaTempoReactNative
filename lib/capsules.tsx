@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
+import { deletePhoto } from './photos';
+
 export type Capsule = {
   id: string;
   title: string;
@@ -30,6 +32,8 @@ type CapsulesContextValue = {
   capsules: Capsule[];
   loaded: boolean;
   addCapsule: (input: Omit<Capsule, 'id' | 'createdAt'>) => Promise<Capsule>;
+  /** Removes the capsule and its photo file. */
+  removeCapsule: (id: string) => Promise<void>;
 };
 
 const CapsulesContext = createContext<CapsulesContextValue | null>(null);
@@ -63,7 +67,17 @@ export function CapsulesProvider({ children }: { children: ReactNode }) {
     return capsule;
   }, []);
 
-  const value = useMemo(() => ({ capsules, loaded, addCapsule }), [capsules, loaded, addCapsule]);
+  const removeCapsule = useCallback(async (id: string) => {
+    const removed = capsulesRef.current.find((c) => c.id === id);
+    if (!removed) return;
+    const next = capsulesRef.current.filter((c) => c.id !== id);
+    capsulesRef.current = next;
+    setCapsules(next);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    deletePhoto(removed.photo);
+  }, []);
+
+  const value = useMemo(() => ({ capsules, loaded, addCapsule, removeCapsule }), [capsules, loaded, addCapsule, removeCapsule]);
   return <CapsulesContext.Provider value={value}>{children}</CapsulesContext.Provider>;
 }
 
