@@ -13,7 +13,7 @@ type Props = {
   onClose: () => void;
 };
 
-// iOS only: Android opens its own dialog through DateTimePickerAndroid.
+// iOS (DatePickerSheet.web.tsx is the web version); Android opens its own dialog through DateTimePickerAndroid.
 // Mount it only while open, so the draft starts from the current value.
 export function DatePickerSheet({ value, minimumDate, onConfirm, onClose }: Props) {
   const t = useTheme();

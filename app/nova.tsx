@@ -34,7 +34,7 @@ export default function NovaCapsula() {
   const [mood, setMood] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showIosPicker, setShowIosPicker] = useState(false);
+  const [showDateSheet, setShowDateSheet] = useState(false);
 
   const today = startOfDay(new Date());
   const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
@@ -74,7 +74,7 @@ export default function NovaCapsula() {
         onValueChange: (_, picked) => setDate(startOfDay(picked)),
       });
     } else {
-      setShowIosPicker(true);
+      setShowDateSheet(true);
     }
   }
 
@@ -184,14 +184,14 @@ export default function NovaCapsula() {
         </View>
       </ScrollView>
 
-      {Platform.OS === 'ios' && showIosPicker && (
+      {showDateSheet && (
         <DatePickerSheet
           value={date ?? tomorrow}
           minimumDate={tomorrow}
-          onClose={() => setShowIosPicker(false)}
+          onClose={() => setShowDateSheet(false)}
           onConfirm={(picked) => {
             setDate(startOfDay(picked));
-            setShowIosPicker(false);
+            setShowDateSheet(false);
           }}
         />
       )}
