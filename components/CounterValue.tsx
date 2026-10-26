@@ -4,6 +4,12 @@ import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, w
 
 import { fonts } from '@/lib/theme';
 
+/**
+ * How the numbers change: 'flip' turns like an airport split-flap board,
+ * 'roll' slides the old number up and the new one in from below, like an odometer.
+ */
+export const COUNTER_ANIMATION: 'flip' | 'roll' = 'flip';
+
 const HEIGHT = 40;
 const HALF = HEIGHT / 2;
 const DURATION = 600;
@@ -18,32 +24,70 @@ type Props = {
   fontSize: number;
 };
 
-/** A number that changes like an airport split-flap board. */
+/** A number that animates each time it changes, in the COUNTER_ANIMATION style. */
 export function CounterValue({ value, ...style }: Props) {
   // Remember the value being replaced, to animate from it.
   const [pair, setPair] = useState({ from: value, to: value });
   if (pair.to !== value) setPair({ from: pair.to, to: value });
+  // A new key per change, so each animation mounts already at its starting position.
+  const key = `${pair.from}→${pair.to}`;
 
+  if (COUNTER_ANIMATION === 'roll') {
+    return (
+      <View style={[styles.box, styles.clip]}>
+        <Roll key={key} from={pair.from} to={pair.to} {...style} />
+      </View>
+    );
+  }
   return (
     <View style={styles.box}>
-      {/* A new key per change, so each flip mounts already at its starting position. */}
-      <Flip key={`${pair.from}→${pair.to}`} from={pair.from} to={pair.to} {...style} />
+      <Flip key={key} from={pair.from} to={pair.to} {...style} />
       <View style={[styles.seam, { backgroundColor: style.seam }]} />
     </View>
   );
 }
 
-type FlipProps = Omit<Props, 'value' | 'seam'> & { from: string; to: string };
+type ChangeProps = Omit<Props, 'value' | 'seam'> & { from: string; to: string };
 
-function Flip({ from, to, color, background, fontSize }: FlipProps) {
+/** Runs 0 → 1 once when the value changed; stays at 1 otherwise or with reduced motion. */
+function useChangeProgress(from: string, to: string) {
   const reduceMotion = useReducedMotion();
   const animate = from !== to && !reduceMotion;
-  // 0 → 0.5: the old top half falls; 0.5 → 1: the new bottom half lands.
   const progress = useSharedValue(animate ? 0 : 1);
 
   useEffect(() => {
     if (animate) progress.value = withTiming(1, { duration: DURATION, easing: Easing.inOut(Easing.quad) });
   }, [animate, progress]);
+
+  return progress;
+}
+
+function Roll({ from, to, color, fontSize }: ChangeProps) {
+  const progress = useChangeProgress(from, to);
+  const leaving = useAnimatedStyle(() => ({
+    opacity: 1 - progress.value,
+    transform: [{ translateY: -HEIGHT * progress.value }],
+  }));
+  const entering = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: HEIGHT * (1 - progress.value) }],
+  }));
+
+  return (
+    <>
+      <Animated.View style={[styles.layer, leaving]}>
+        <Text style={[styles.text, { color, fontSize }]}>{from}</Text>
+      </Animated.View>
+      <Animated.View style={[styles.layer, entering]}>
+        <Text style={[styles.text, { color, fontSize }]}>{to}</Text>
+      </Animated.View>
+    </>
+  );
+}
+
+function Flip({ from, to, color, background, fontSize }: ChangeProps) {
+  // 0 → 0.5: the old top half falls; 0.5 → 1: the new bottom half lands.
+  const progress = useChangeProgress(from, to);
 
   const topFlap = useAnimatedStyle(() => ({
     opacity: progress.value < 0.5 ? 1 : 0,
@@ -86,6 +130,14 @@ const styles = StyleSheet.create({
   box: {
     width: '100%',
     height: HEIGHT,
+  },
+  clip: {
+    overflow: 'hidden',
+  },
+  layer: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   half: {
     position: 'absolute',
