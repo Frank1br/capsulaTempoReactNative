@@ -1,10 +1,12 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/components/Icon';
 import { LockBadge } from '@/components/LockBadge';
+import { PeekSheet } from '@/components/PeekSheet';
 import { countdown, daysBetween, formatLong, formatShort, isLocked, MOODS, plural, useCapsules, useNow, type Capsule } from '@/lib/capsules';
 import { photoUri } from '@/lib/photos';
 import { fonts, useTheme } from '@/lib/theme';
@@ -15,6 +17,8 @@ export default function DetalheCapsula() {
   const { capsules } = useCapsules();
   const now = useNow();
   const capsule = capsules.find((c) => c.id === id);
+  // Peeking only lives in this screen: once you leave, the capsule is sealed again.
+  const [peeking, setPeeking] = useState(false);
 
   if (!capsule) {
     return (
@@ -25,12 +29,15 @@ export default function DetalheCapsula() {
     );
   }
 
-  return isLocked(capsule, now) ? <Trancada capsule={capsule} now={now} /> : <Aberta capsule={capsule} />;
+  const locked = isLocked(capsule, now);
+  if (locked && !peeking) return <Trancada capsule={capsule} now={now} onPeek={() => setPeeking(true)} />;
+  return <Aberta capsule={capsule} peeking={locked} />;
 }
 
-function Trancada({ capsule, now }: { capsule: Capsule; now: number }) {
+function Trancada({ capsule, now, onPeek }: { capsule: Capsule; now: number; onPeek: () => void }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  const [showPeek, setShowPeek] = useState(false);
   const { days, hours } = countdown(capsule, now);
   const opens = formatLong(capsule.opensAt);
 
@@ -65,17 +72,37 @@ function Trancada({ capsule, now }: { capsule: Capsule; now: number }) {
             </View>
             <Text style={[styles.sealedText, { color: t.soft }]}>A mensagem está selada. Volte no dia {opens} para lê-la.</Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setShowPeek(true)}
+            style={({ pressed }) => [styles.peekButton, { borderColor: t.lineStrong, opacity: pressed ? 0.7 : 1 }]}
+          >
+            <Icon name="eye" color={t.accText} size={18} strokeWidth={2} />
+            <Text style={[styles.peekText, { color: t.accText }]}>Espiar antes da hora</Text>
+          </Pressable>
         </View>
       </ScrollView>
 
       <BackButton />
       <EditButton capsule={capsule} />
       <DeleteButton capsule={capsule} locked />
+
+      {showPeek && (
+        <PeekSheet
+          title={capsule.title}
+          opens={opens}
+          onClose={() => setShowPeek(false)}
+          onConfirm={() => {
+            setShowPeek(false);
+            onPeek();
+          }}
+        />
+      )}
     </View>
   );
 }
 
-function Aberta({ capsule }: { capsule: Capsule }) {
+function Aberta({ capsule, peeking }: { capsule: Capsule; peeking: boolean }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const mood = capsule.mood !== null ? MOODS[capsule.mood] : null;
@@ -89,9 +116,9 @@ function Aberta({ capsule }: { capsule: Capsule }) {
 
         <View style={[styles.panel, { backgroundColor: t.bg }]}>
           <View style={styles.openTop}>
-            <View style={[styles.openPill, { backgroundColor: t.accSoft }]}>
-              <Icon name="lockOpen" color={t.accText} size={15} strokeWidth={2.4} />
-              <Text style={[styles.openText, { color: t.accText }]}>Aberta</Text>
+            <View style={[styles.openPill, { backgroundColor: peeking ? t.badge : t.accSoft }]}>
+              <Icon name={peeking ? 'eye' : 'lockOpen'} color={peeking ? t.lock : t.accText} size={15} strokeWidth={2.4} />
+              <Text style={[styles.openText, { color: peeking ? t.onBadge : t.accText }]}>{peeking ? 'Espiando' : 'Aberta'}</Text>
             </View>
             {mood && (
               <View
@@ -109,7 +136,11 @@ function Aberta({ capsule }: { capsule: Capsule }) {
 
           <View style={styles.facts}>
             <Fact icon="pen" label="Escrita em" value={formatShort(capsule.createdAt)} />
-            <Fact icon="lockOpen" label="Aberta em" value={formatShort(capsule.opensAt)} />
+            {peeking ? (
+              <Fact icon="calendar" label="Abre em" value={formatShort(capsule.opensAt)} />
+            ) : (
+              <Fact icon="lockOpen" label="Aberta em" value={formatShort(capsule.opensAt)} />
+            )}
           </View>
 
           <View style={[styles.letter, { backgroundColor: t.card, boxShadow: t.shadow }]}>
@@ -123,9 +154,11 @@ function Aberta({ capsule }: { capsule: Capsule }) {
           </View>
 
           <View style={styles.kept}>
-            <Icon name="clock" color={t.soft} size={16} strokeWidth={2} />
+            <Icon name={peeking ? 'lock' : 'clock'} color={t.soft} size={16} strokeWidth={2} />
             <Text style={[styles.keptText, { color: t.soft }]}>
-              Guardada por {keptDays} {plural(keptDays, 'dia', 'dias')}
+              {peeking
+                ? `Ela continua trancada até ${formatLong(capsule.opensAt)}`
+                : `Guardada por ${keptDays} ${plural(keptDays, 'dia', 'dias')}`}
             </Text>
           </View>
         </View>
@@ -133,7 +166,7 @@ function Aberta({ capsule }: { capsule: Capsule }) {
 
       <BackButton />
       <EditButton capsule={capsule} />
-      <DeleteButton capsule={capsule} locked={false} />
+      <DeleteButton capsule={capsule} locked={peeking} />
     </View>
   );
 }
@@ -331,6 +364,19 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 14.5,
     lineHeight: 21.75,
+  },
+  peekButton: {
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  peekText: {
+    fontFamily: fonts.semibold,
+    fontSize: 15,
   },
   openHero: {
     height: 380,
