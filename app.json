@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.frank1br.capsulaTempo"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -47,6 +48,16 @@
           "microphonePermission": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "cb41c8ae-56d3-46a2-bdc0-4e971ec15485"
+      }
+    }
   }
 }
