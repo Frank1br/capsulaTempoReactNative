@@ -1,5 +1,4 @@
 import { Directory, File, Paths } from 'expo-file-system';
-import { Platform } from 'react-native';
 
 const FOLDER = 'fotos';
 
@@ -7,11 +6,9 @@ const FOLDER = 'fotos';
  * Copies a picked photo out of the picker's cache, which the OS may clear,
  * into the app's documents. Returns a path relative to the documents folder,
  * because the absolute path changes between app updates on iOS.
+ * The web version lives in photos.web.ts.
  */
 export async function savePhoto(pickedUri: string): Promise<string> {
-  // The web build has no file system: keep the picker's uri as is.
-  if (Platform.OS === 'web') return pickedUri;
-
   const dir = new Directory(Paths.document, FOLDER);
   dir.create({ idempotent: true, intermediates: true });
   const source = new File(pickedUri);
@@ -23,6 +20,6 @@ export async function savePhoto(pickedUri: string): Promise<string> {
 
 /** Turns what savePhoto stored back into a uri the Image component can load. */
 export function photoUri(stored: string): string {
-  if (Platform.OS === 'web' || stored.includes(':')) return stored;
+  if (stored.includes(':')) return stored;
   return new File(Paths.document, stored).uri;
 }
