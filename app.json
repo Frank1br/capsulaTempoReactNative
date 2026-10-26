@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#B4532F",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -22,7 +22,18 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#B4532F",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 300,
+          "dark": {
+            "backgroundColor": "#1A1512",
+            "image": "./assets/splash-icon-dark.png"
+          }
+        }
+      ],
       "expo-router",
       "expo-status-bar",
       "expo-font",
