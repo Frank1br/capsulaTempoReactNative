@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { plural } from '@/lib/capsules';
 import { fonts, useTheme } from '@/lib/theme';
+import { CounterValue } from './CounterValue';
 import { Icon } from './Icon';
 
 type Props = {
@@ -70,7 +71,7 @@ function Counter({ value, unit }: { value: string; unit: string }) {
   const fontSize = value.length > 3 ? 24 : 30;
   return (
     <View style={[styles.counter, { backgroundColor: t.card, boxShadow: t.shadow }]}>
-      <Text style={[styles.counterValue, { color: t.ink, fontSize }]}>{value}</Text>
+      <CounterValue value={value} color={t.ink} background={t.card} seam={t.bg} fontSize={fontSize} />
       <Text style={[styles.counterUnit, { color: t.soft }]}>{unit}</Text>
     </View>
   );
@@ -120,11 +121,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     gap: 2,
-  },
-  counterValue: {
-    fontFamily: fonts.serif,
-    lineHeight: 38,
-    fontVariant: ['tabular-nums'],
   },
   counterUnit: {
     fontFamily: fonts.semibold,
