@@ -1,5 +1,5 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,7 +7,6 @@ import { fonts, useTheme } from '@/lib/theme';
 import { PrimaryButton } from './PrimaryButton';
 
 type Props = {
-  visible: boolean;
   value: Date;
   minimumDate: Date;
   onConfirm: (date: Date) => void;
@@ -15,17 +14,14 @@ type Props = {
 };
 
 // iOS only: Android opens its own dialog through DateTimePickerAndroid.
-export function DatePickerSheet({ visible, value, minimumDate, onConfirm, onClose }: Props) {
+// Mount it only while open, so the draft starts from the current value.
+export function DatePickerSheet({ value, minimumDate, onConfirm, onClose }: Props) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState(value);
 
-  useEffect(() => {
-    if (visible) setDraft(value);
-  }, [visible, value]);
-
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <Pressable accessibilityLabel="Fechar" style={[styles.backdrop, { backgroundColor: t.scrim }]} onPress={onClose} />
       <View style={[styles.sheet, { backgroundColor: t.bg, paddingBottom: insets.bottom + 16 }]}>
         <Text style={[styles.title, { color: t.ink }]}>Data de abertura</Text>

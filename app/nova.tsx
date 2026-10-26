@@ -184,9 +184,8 @@ export default function NovaCapsula() {
         </View>
       </ScrollView>
 
-      {Platform.OS === 'ios' && (
+      {Platform.OS === 'ios' && showIosPicker && (
         <DatePickerSheet
-          visible={showIosPicker}
           value={date ?? tomorrow}
           minimumDate={tomorrow}
           onClose={() => setShowIosPicker(false)}
