@@ -5,7 +5,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "scheme": "capsulatempo",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
@@ -19,6 +20,22 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-splash-screen",
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      "expo-image",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita o acesso às suas fotos para guardar uma imagem junto da cápsula.",
+          "cameraPermission": "Permita o acesso à câmera para tirar uma foto para a cápsula.",
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }
