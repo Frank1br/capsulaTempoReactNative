@@ -8,9 +8,12 @@ type Props = {
   size?: 'sm' | 'lg';
   days: number;
   hours: number;
+  /** Only shown by the large badge. */
+  minutes?: number;
+  seconds?: number;
 };
 
-export function LockBadge({ size = 'lg', days, hours }: Props) {
+export function LockBadge({ size = 'lg', days, hours, minutes = 0, seconds = 0 }: Props) {
   const t = useTheme();
   const dayWord = plural(days, 'dia', 'dias');
 
@@ -31,8 +34,7 @@ export function LockBadge({ size = 'lg', days, hours }: Props) {
     );
   }
 
-  const hoursPad = String(hours).padStart(2, '0');
-  const hourWord = plural(hours, 'hora', 'horas');
+  const pad = (n: number) => String(n).padStart(2, '0');
   return (
     <View style={styles.large}>
       <View
@@ -46,9 +48,17 @@ export function LockBadge({ size = 'lg', days, hours }: Props) {
       >
         <Icon name="lockKeyhole" color={t.lock} size={50} strokeWidth={1.8} />
       </View>
-      <View accessibilityRole="timer" accessibilityLabel={`Abre em ${days} ${dayWord} e ${hoursPad} horas`} style={styles.counters}>
+      {/* The label skips minutes and seconds so screen readers aren't interrupted every second. */}
+      <View
+        accessible
+        accessibilityRole="timer"
+        accessibilityLabel={`Abre em ${days} ${dayWord} e ${hours} ${plural(hours, 'hora', 'horas')}`}
+        style={styles.counters}
+      >
         <Counter value={String(days)} unit={dayWord} />
-        <Counter value={hoursPad} unit={hourWord} />
+        <Counter value={pad(hours)} unit={plural(hours, 'hora', 'horas')} />
+        <Counter value={pad(minutes)} unit="min" />
+        <Counter value={pad(seconds)} unit="seg" />
       </View>
     </View>
   );
@@ -56,9 +66,11 @@ export function LockBadge({ size = 'lg', days, hours }: Props) {
 
 function Counter({ value, unit }: { value: string; unit: string }) {
   const t = useTheme();
+  // Four digits of days (over 2 years) would not fit at the regular size.
+  const fontSize = value.length > 3 ? 24 : 30;
   return (
     <View style={[styles.counter, { backgroundColor: t.card, boxShadow: t.shadow }]}>
-      <Text style={[styles.counterValue, { color: t.ink }]}>{value}</Text>
+      <Text style={[styles.counterValue, { color: t.ink, fontSize }]}>{value}</Text>
       <Text style={[styles.counterUnit, { color: t.soft }]}>{unit}</Text>
     </View>
   );
@@ -99,26 +111,25 @@ const styles = StyleSheet.create({
   },
   counters: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   counter: {
-    width: 116,
-    paddingTop: 12,
-    paddingBottom: 10,
-    borderRadius: 16,
+    width: 68,
+    paddingTop: 10,
+    paddingBottom: 9,
+    borderRadius: 14,
     alignItems: 'center',
     gap: 2,
   },
   counterValue: {
     fontFamily: fonts.serif,
-    fontSize: 40,
-    lineHeight: 44,
+    lineHeight: 38,
     fontVariant: ['tabular-nums'],
   },
   counterUnit: {
     fontFamily: fonts.semibold,
-    fontSize: 11.5,
-    letterSpacing: 1.15,
+    fontSize: 10.5,
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
 });

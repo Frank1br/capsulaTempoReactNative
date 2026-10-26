@@ -27,6 +27,7 @@ export const MOODS = [
 const STORAGE_KEY = 'capsulas:v1';
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
 
 type CapsulesContextValue = {
   capsules: Capsule[];
@@ -106,8 +107,16 @@ export function useCapsules() {
 export function useNow(intervalMs = 60_000) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(id);
+    // Ticks just after each whole interval, so a seconds counter never skips or repeats a number.
+    let id: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      id = setTimeout(() => {
+        setNow(Date.now());
+        schedule();
+      }, intervalMs - (Date.now() % intervalMs) + 5);
+    };
+    schedule();
+    return () => clearTimeout(id);
   }, [intervalMs]);
   return now;
 }
@@ -118,7 +127,12 @@ export function isLocked(capsule: Capsule, now: number) {
 
 export function countdown(capsule: Capsule, now: number) {
   const ms = Math.max(0, new Date(capsule.opensAt).getTime() - now);
-  return { days: Math.floor(ms / DAY), hours: Math.floor((ms % DAY) / HOUR) };
+  return {
+    days: Math.floor(ms / DAY),
+    hours: Math.floor((ms % DAY) / HOUR),
+    minutes: Math.floor((ms % HOUR) / MINUTE),
+    seconds: Math.floor((ms % MINUTE) / 1000),
+  };
 }
 
 /** Whole days between two dates, counted on local calendar days. */

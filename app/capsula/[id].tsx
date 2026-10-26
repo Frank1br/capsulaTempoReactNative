@@ -15,7 +15,8 @@ export default function DetalheCapsula() {
   const t = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { capsules } = useCapsules();
-  const now = useNow();
+  // Every second, so the countdown ticks and the capsule opens right at zero.
+  const now = useNow(1000);
   const capsule = capsules.find((c) => c.id === id);
   // Peeking only lives in this screen: once you leave, the capsule is sealed again.
   const [peeking, setPeeking] = useState(false);
@@ -38,7 +39,7 @@ function Trancada({ capsule, now, onPeek }: { capsule: Capsule; now: number; onP
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const [showPeek, setShowPeek] = useState(false);
-  const { days, hours } = countdown(capsule, now);
+  const { days, hours, minutes, seconds } = countdown(capsule, now);
   const opens = formatLong(capsule.opensAt);
 
   return (
@@ -48,7 +49,7 @@ function Trancada({ capsule, now, onPeek }: { capsule: Capsule; now: number; onP
           <Image source={{ uri: photoUri(capsule.photo) }} blurRadius={14} contentFit="cover" style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, { backgroundColor: t.scrim }]} />
           <View style={[styles.badge, { top: insets.top + 57 }]}>
-            <LockBadge size="lg" days={days} hours={hours} />
+            <LockBadge size="lg" days={days} hours={hours} minutes={minutes} seconds={seconds} />
           </View>
         </View>
 
