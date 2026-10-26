@@ -42,13 +42,13 @@ export default function Estatisticas() {
           ) : (
             <>
               {nOpen > 0 && <View style={[styles.barPart, { flex: nOpen, backgroundColor: t.acc }]} />}
-              {locked.length > 0 && <View style={[styles.barPart, { flex: locked.length, backgroundColor: t.ink }]} />}
+              {locked.length > 0 && <View style={[styles.barPart, { flex: locked.length, backgroundColor: t.meter }]} />}
             </>
           )}
         </View>
         <View style={styles.legend}>
           <LegendItem color={t.acc} label={`${nOpen} ${plural(nOpen, 'aberta', 'abertas')}`} />
-          <LegendItem color={t.ink} label={`${locked.length} ${plural(locked.length, 'trancada', 'trancadas')}`} />
+          <LegendItem color={t.meter} label={`${locked.length} ${plural(locked.length, 'trancada', 'trancadas')}`} />
         </View>
       </View>
 
