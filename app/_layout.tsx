@@ -4,17 +4,17 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { AnimatedSplash } from '@/components/AnimatedSplash';
 import { CapsulesProvider, useCapsules } from '@/lib/capsules';
 import { useTheme } from '@/lib/theme';
 
 SplashScreen.preventAutoHideAsync();
 
-// Set the animation options. This is optional.
+// AnimatedSplash draws the same picture as the native splash, so hide it without a fade.
 SplashScreen.setOptions({
-  duration: 3300,
-  fade: true,
+  fade: false,
 });
 
 export default function RootLayout() {
@@ -40,6 +40,8 @@ export default function RootLayout() {
 function RootStack() {
   const t = useTheme();
   const { loaded } = useCapsules();
+  const [showSplash, setShowSplash] = useState(true);
+  const hideSplash = useCallback(() => setShowSplash(false), []);
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync();
@@ -47,11 +49,13 @@ function RootStack() {
 
   return (
     <>
-      <StatusBar style={t.dark ? 'light' : 'dark'} />
+      {/* Light text while the splash covers the screen, then follow the theme. */}
+      <StatusBar style={t.dark || showSplash ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="nova" options={{ presentation: 'modal' }} />
       </Stack>
+      {showSplash && <AnimatedSplash ready={loaded} onFinish={hideSplash} />}
     </>
   );
 }
