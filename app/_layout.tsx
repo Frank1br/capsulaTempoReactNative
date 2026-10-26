@@ -62,6 +62,7 @@ function RootStack() {
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="nova" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="editar/[id]" options={{ presentation: 'modal' }} />
           </Stack>
         </View>
       </View>

@@ -69,6 +69,7 @@ function Trancada({ capsule, now }: { capsule: Capsule; now: number }) {
       </ScrollView>
 
       <BackButton />
+      <EditButton capsule={capsule} />
       <DeleteButton capsule={capsule} locked />
     </View>
   );
@@ -131,6 +132,7 @@ function Aberta({ capsule }: { capsule: Capsule }) {
       </ScrollView>
 
       <BackButton />
+      <EditButton capsule={capsule} />
       <DeleteButton capsule={capsule} locked={false} />
     </View>
   );
@@ -167,6 +169,21 @@ function BackButton() {
       style={[styles.topButton, styles.back, { top: insets.top + 5, backgroundColor: t.card, boxShadow: t.shadowStrong }]}
     >
       <Icon name="back" color={t.ink} size={22} />
+    </Pressable>
+  );
+}
+
+function EditButton({ capsule }: { capsule: Capsule }) {
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Editar cápsula"
+      onPress={() => router.push(`/editar/${capsule.id}`)}
+      style={[styles.topButton, styles.edit, { top: insets.top + 5, backgroundColor: t.card, boxShadow: t.shadowStrong }]}
+    >
+      <Icon name="pen" color={t.ink} size={20} strokeWidth={2} />
     </Pressable>
   );
 }
@@ -388,6 +405,9 @@ const styles = StyleSheet.create({
   },
   back: {
     left: 16,
+  },
+  edit: {
+    right: 70,
   },
   delete: {
     right: 16,

@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { daysBetween, formatShort, plural, startOfDay } from '@/lib/capsules';
 import { fonts, useTheme } from '@/lib/theme';
 import { DatePickerSheet } from './DatePickerSheet';
-import { Icon } from './Icon';
+import { Icon, type IconName } from './Icon';
 import { Input } from './Input';
 import { MoodPicker } from './MoodPicker';
 import { PrimaryButton } from './PrimaryButton';
@@ -33,21 +33,37 @@ export type CapsuleFormValues = {
 type Props = {
   heading: string;
   submitLabel: string;
+  submitIcon?: IconName;
   savingLabel: string;
   footnote: string;
+  /** Values to start from when editing. */
+  initial?: CapsuleFormValues;
+  /** Hidden fields are not validated and keep their initial value. */
+  showMessage?: boolean;
+  showDate?: boolean;
   /** Throwing shows an error alert and lets the user try again. */
   onSubmit: (values: CapsuleFormValues) => Promise<void>;
 };
 
-export function CapsuleForm({ heading, submitLabel, savingLabel, footnote, onSubmit }: Props) {
+export function CapsuleForm({
+  heading,
+  submitLabel,
+  submitIcon = 'lock',
+  savingLabel,
+  footnote,
+  initial,
+  showMessage = true,
+  showDate = true,
+  onSubmit,
+}: Props) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
 
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [date, setDate] = useState<Date | null>(null);
-  const [mood, setMood] = useState<number | null>(null);
+  const [photo, setPhoto] = useState<string | null>(initial?.photo ?? null);
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [message, setMessage] = useState(initial?.message ?? '');
+  const [date, setDate] = useState<Date | null>(initial?.date ?? null);
+  const [mood, setMood] = useState<number | null>(initial?.mood ?? null);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDateSheet, setShowDateSheet] = useState(false);
@@ -96,7 +112,7 @@ export function CapsuleForm({ heading, submitLabel, savingLabel, footnote, onSub
 
   async function submit() {
     setSubmitted(true);
-    if (!photo || !title.trim() || !message.trim() || !date) return;
+    if (!photo || !title.trim() || (showMessage && !message.trim()) || !date) return;
     setSaving(true);
     try {
       await onSubmit({ photo, title: title.trim(), message: message.trim(), date, mood });
@@ -169,27 +185,31 @@ export function CapsuleForm({ heading, submitLabel, savingLabel, footnote, onSub
           placeholder="Ex.: Para mim daqui a um ano"
           error={submitted ? 'Dê um título à sua cápsula.' : undefined}
         />
-        <Input
-          kind="multiline"
-          label="Mensagem"
-          value={message}
-          onChangeText={setMessage}
-          placeholder="Escreva o que você quer dizer ao seu eu do futuro…"
-          error={submitted ? 'Escreva sua mensagem para o futuro.' : undefined}
-        />
-        <Input
-          kind="date"
-          label="Data de abertura"
-          value={date ? formatShort(date) : ''}
-          onPress={chooseDate}
-          placeholder="Escolha uma data"
-          helper={date ? `Abre em ${daysUntil} ${plural(daysUntil, 'dia', 'dias')}` : undefined}
-          error={submitted ? 'Escolha quando ela poderá ser aberta.' : undefined}
-        />
+        {showMessage && (
+          <Input
+            kind="multiline"
+            label="Mensagem"
+            value={message}
+            onChangeText={setMessage}
+            placeholder="Escreva o que você quer dizer ao seu eu do futuro…"
+            error={submitted ? 'Escreva sua mensagem para o futuro.' : undefined}
+          />
+        )}
+        {showDate && (
+          <Input
+            kind="date"
+            label="Data de abertura"
+            value={date ? formatShort(date) : ''}
+            onPress={chooseDate}
+            placeholder="Escolha uma data"
+            helper={date ? `Abre em ${daysUntil} ${plural(daysUntil, 'dia', 'dias')}` : undefined}
+            error={submitted ? 'Escolha quando ela poderá ser aberta.' : undefined}
+          />
+        )}
         <MoodPicker value={mood} onChange={setMood} />
 
         <View style={styles.footer}>
-          <PrimaryButton label={saving ? savingLabel : submitLabel} icon="lock" onPress={submit} disabled={saving} />
+          <PrimaryButton label={saving ? savingLabel : submitLabel} icon={submitIcon} onPress={submit} disabled={saving} />
           <Text style={[styles.footerText, { color: t.soft }]}>{footnote}</Text>
         </View>
       </ScrollView>
