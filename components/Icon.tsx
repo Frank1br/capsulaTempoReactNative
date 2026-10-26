@@ -14,7 +14,9 @@ export type IconName =
   | 'image'
   | 'refresh'
   | 'box'
-  | 'chart';
+  | 'chart'
+  | 'sun'
+  | 'moon';
 
 type Props = {
   name: IconName;
@@ -105,5 +107,14 @@ function renderShapes(name: IconName, s: object) {
       );
     case 'chart':
       return <Path d="M4 20h16M7 16v-5M12 16V6M17 16v-8" {...s} />;
+    case 'sun':
+      return (
+        <>
+          <Circle cx={12} cy={12} r={4} {...s} />
+          <Path d="M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4" {...s} />
+        </>
+      );
+    case 'moon':
+      return <Path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.5 6.5 0 0 0 10 10z" {...s} />;
   }
 }

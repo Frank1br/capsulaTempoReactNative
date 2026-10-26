@@ -8,10 +8,11 @@ import { EmptyIllustration } from '@/components/EmptyIllustration';
 import { Icon } from '@/components/Icon';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { isLocked, useCapsules, useNow } from '@/lib/capsules';
-import { fonts, useTheme } from '@/lib/theme';
+import { fonts, useTheme, useThemePreference } from '@/lib/theme';
 
 export default function Home() {
   const t = useTheme();
+  const { setPreference } = useThemePreference();
   const insets = useSafeAreaInsets();
   const { capsules } = useCapsules();
   const now = useNow();
@@ -34,9 +35,19 @@ export default function Home() {
         contentContainerStyle={[styles.list, { paddingTop: insets.top + 15 }]}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text accessibilityRole="header" style={[styles.title, { color: t.ink }]}>
-              Cápsula do Tempo
-            </Text>
+            <View style={styles.titleRow}>
+              <Text accessibilityRole="header" style={[styles.title, { color: t.ink }]}>
+                Cápsula do Tempo
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t.dark ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
+                onPress={() => setPreference(t.dark ? 'light' : 'dark')}
+                style={({ pressed }) => [styles.themeButton, { backgroundColor: t.card, boxShadow: t.shadow, opacity: pressed ? 0.8 : 1 }]}
+              >
+                <Icon name={t.dark ? 'sun' : 'moon'} color={t.ink} size={20} strokeWidth={2} />
+              </Pressable>
+            </View>
             <View style={styles.summary}>
               <Icon name="lock" color={t.soft} size={16} />
               <Text style={[styles.summaryText, { color: t.soft }]}>
@@ -85,10 +96,24 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     gap: 8,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   title: {
+    flexShrink: 1,
     fontFamily: fonts.serif,
     fontSize: 30,
     letterSpacing: -0.3,
+  },
+  themeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   summary: {
     flexDirection: 'row',

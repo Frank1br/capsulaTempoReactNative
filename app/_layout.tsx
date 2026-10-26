@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { AnimatedSplash } from '@/components/AnimatedSplash';
 import { CapsulesProvider, useCapsules } from '@/lib/capsules';
-import { useTheme } from '@/lib/theme';
+import { ThemeProvider, useTheme, useThemePreference } from '@/lib/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,15 +31,20 @@ export default function RootLayout() {
   }
 
   return (
-    <CapsulesProvider>
-      <RootStack />
-    </CapsulesProvider>
+    <ThemeProvider>
+      <CapsulesProvider>
+        <RootStack />
+      </CapsulesProvider>
+    </ThemeProvider>
   );
 }
 
 function RootStack() {
   const t = useTheme();
-  const { loaded } = useCapsules();
+  const capsules = useCapsules();
+  const theme = useThemePreference();
+  // Waiting for the saved theme too keeps the app from flashing the wrong one.
+  const loaded = capsules.loaded && theme.loaded;
   const [showSplash, setShowSplash] = useState(true);
   const hideSplash = useCallback(() => setShowSplash(false), []);
 

@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
 const light = {
@@ -61,8 +63,50 @@ const dark: Theme = {
 
 export const themes = { light, dark };
 
+/** 'system' follows the phone's setting until the user picks a theme. */
+type Preference = 'system' | 'light' | 'dark';
+
+const STORAGE_KEY = 'tema:v1';
+
+type ThemeContextValue = {
+  preference: Preference;
+  loaded: boolean;
+  setPreference: (preference: Preference) => void;
+};
+
+const ThemeContext = createContext<ThemeContextValue>({ preference: 'system', loaded: true, setPreference: () => {} });
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [preference, setPreferenceState] = useState<Preference>('system');
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((saved) => {
+        if (saved === 'light' || saved === 'dark') setPreferenceState(saved);
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
+
+  const setPreference = useCallback((next: Preference) => {
+    setPreferenceState(next);
+    AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
+  }, []);
+
+  const value = useMemo(() => ({ preference, loaded, setPreference }), [preference, loaded, setPreference]);
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
 export function useTheme(): Theme {
-  return useColorScheme() === 'dark' ? dark : light;
+  const { preference } = useContext(ThemeContext);
+  const system = useColorScheme();
+  const scheme = preference === 'system' ? system : preference;
+  return scheme === 'dark' ? dark : light;
+}
+
+export function useThemePreference() {
+  return useContext(ThemeContext);
 }
 
 // Font keys registered with useFonts in app/_layout.tsx.
